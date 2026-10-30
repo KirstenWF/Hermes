@@ -10,9 +10,11 @@ public class HermesContentEndpoint : ModuleRules
 			{
 				"ApplicationCore",
 				"AssetRegistry",
+				"BlueprintGraph",
 				"ContentBrowser",
 				"Core",
 				"CoreUObject",
+				"EditorFramework",
 				"EditorStyle",
 				"Engine",
 				"HermesServer",

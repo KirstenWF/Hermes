@@ -1,4 +1,4 @@
-﻿// Copyright (c) Jørgen Tjernø <jorgen@tjer.no>. All rights reserved.
+// Copyright (c) Jørgen Tjernø <jorgen@tjer.no>. All rights reserved.
 #pragma once
 
 #include <ContentBrowserModule.h>
@@ -18,6 +18,9 @@ struct FHermesContentEndpointEditorExtension
 
 	void InstallAssetEditorExtension();
 	void UninstallAssetEditorExtension();
+
+	void InstallGraphEditorExtension();
+	void UninstallGraphEditorExtension();
 
 private:
 	static void CopyEndpointURLsToClipboard(TArray<FName> Packages, const TCHAR* OptionalSuffix = nullptr);

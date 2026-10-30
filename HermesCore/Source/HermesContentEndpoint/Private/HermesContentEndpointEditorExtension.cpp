@@ -1,4 +1,4 @@
-﻿// Copyright (c) Jørgen Tjernø <jorgen@tjer.no>. All rights reserved.
+// Copyright (c) Jørgen Tjernø <jorgen@tjer.no>. All rights reserved.
 #include "HermesContentEndpointEditorExtension.h"
 
 #include "HermesContentEndpoint.h"
@@ -225,6 +225,33 @@ void FHermesContentEndpointEditorExtension::UninstallAssetEditorExtension()
 		return Delegate.GetHandle() == AssetEditorExtenderDelegateHandle;
 	});
 	AssetEditorExtenderDelegateHandle.Reset();
+}
+
+void FHermesContentEndpointEditorExtension::InstallGraphEditorExtension()
+{
+	//FGraphEditorModule& GraphEditorModule = FModuleManager::LoadModuleChecked<FGraphEditorModule>("GraphEditor");
+	//TArray<FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode>& GraphEditorMenuExtenderDelegates =
+	//	GraphEditorModule->GetExtenderDelegates();
+	//auto Delegate = FGraphEditorModule::FGraphEditorMenuExtender_SelectedNode::CreateLambda(
+	//	[CDO](const TSharedRef<FUICommandList>, const UEdGraph* Graph, const UEdGraphNode* GraphNode, const UEdGraphPin* GraphPin,
+	//		  bool) -> TSharedRef<FExtender>
+	//	{
+	//		FExtenderGraphSelection SelectedGraph;
+	//		SelectedGraph.Graph = Graph;
+	//		SelectedGraph.GraphNode = GraphNode;
+
+	//		FExtenderSelection Selection;
+	//		Selection.SelectedGraphs.Add(SelectedGraph);
+
+	//		return CDO->Extend(MakeShared<FUICommandList>(), Selection);
+	//	});
+
+	//GraphEditorModule.GetAllGraphEditorContextMenuExtender().Add(Delegate);
+	//Registered.DelegateHandle = Delegate.GetHandle();
+}
+
+void FHermesContentEndpointEditorExtension::UninstallGraphEditorExtension()
+{
 }
 
 TSharedRef<FExtender> FHermesContentEndpointEditorExtension::OnExtendAssetEditor(

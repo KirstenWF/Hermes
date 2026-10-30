@@ -4,6 +4,8 @@
 #include "HermesContentEndpointEditorExtension.h"
 
 #include <AssetRegistry/AssetRegistryModule.h>
+#include <BlueprintEditorModule.h>
+#include <BlueprintEditorSettings.h>
 #include <ContentBrowserModule.h>
 #include <CoreMinimal.h>
 #include <Editor.h>
@@ -11,6 +13,8 @@
 #include <IContentBrowserSingleton.h>
 #include <Interfaces/IMainFrameModule.h>
 #include <Subsystems/AssetEditorSubsystem.h>
+#include <Toolkits/ToolkitManager.h>
+#include <EdGraphNode_Comment.h>
 
 #define LOCTEXT_NAMESPACE "Editor.HermesContentEndpoint"
 
@@ -56,10 +60,12 @@ void FHermesContentEndpointModule::StartupModule()
 
 	EditorExtension.InstallContentBrowserExtension();
 	EditorExtension.InstallAssetEditorExtension();
+	EditorExtension.InstallGraphEditorExtension();
 }
 
 void FHermesContentEndpointModule::ShutdownModule()
 {
+	EditorExtension.UninstallGraphEditorExtension();
 	EditorExtension.UninstallAssetEditorExtension();
 	EditorExtension.UninstallContentBrowserExtension();
 
@@ -119,6 +125,57 @@ void FHermesContentEndpointModule::OnRequest(const FString& Path, const FHermesQ
 			UE_LOG(LogHermesContentEndpoint, Verbose, TEXT("Opening %s for editing"), *Path);
 			UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
 			AssetEditorSubsystem->OpenEditorForAsset(AssetData[0].GetAsset());
+
+			if (const FString* BookmarkGuidStr = QueryParams.Find("bookmark"))
+			{
+				UE_LOG(LogHermesContentEndpoint, Verbose, TEXT("Searching to bookmark or comment %s"), **BookmarkGuidStr);
+				TSharedPtr<IToolkit> AssetEditorPtr = FToolkitManager::Get().FindEditorForAsset(AssetData[0].GetAsset());
+				if (AssetEditorPtr->IsBlueprintEditor())
+				{
+					TSharedPtr<IBlueprintEditor> BlueprintEditor = StaticCastSharedPtr<IBlueprintEditor>(AssetEditorPtr);
+					if (const UBlueprintEditorSettings* Settings = GetDefault<UBlueprintEditorSettings>())
+					{
+						FGuid BookmarkGuid = FGuid(*BookmarkGuidStr);
+						if (const FEditedDocumentInfo* BookmarkNode = Settings->Bookmarks.Find(BookmarkGuid))
+						{
+							UE_LOG(LogHermesContentEndpoint, Verbose, TEXT("Jumping to bookmark %s"), **BookmarkGuidStr);
+							BlueprintEditor->JumpToHyperlink(BookmarkNode->EditedObjectPath.ResolveObject(), false);
+						}
+						else // check for comment nodes
+						{
+							UBlueprint* Blueprint = Cast<UBlueprint>(AssetData[0].GetAsset());
+
+							TArray<UEdGraph*> AllGraphs;
+							Blueprint->GetAllGraphs(AllGraphs);
+
+							for (UEdGraph* Graph : AllGraphs)
+							{
+								TArray<UEdGraphNode_Comment*> CommentNodes;
+								Graph->GetNodesOfClass(CommentNodes);
+								
+								bool bNodeFound = false;
+								for (auto Node : CommentNodes)
+								{
+									if (Node->NodeGuid == BookmarkGuid)
+									{
+										UE_LOG(LogHermesContentEndpoint, Verbose, TEXT("Jumping to comment %s"),
+											   **BookmarkGuidStr);
+
+										bNodeFound = true;
+										BlueprintEditor->JumpToHyperlink(Node, false);
+										break;
+									}
+								}
+
+								if (bNodeFound)
+								{
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		else
 		{
